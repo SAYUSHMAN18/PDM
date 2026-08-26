@@ -1,0 +1,17 @@
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+
+# Large raw sensor files (UCI dataset sensor logs > 40MB)
+data/raw/data/*.txt
+!data/raw/data/profile.txt
+!data/raw/data/description.txt
+!data/raw/data/documentation.txt
+
+# Environment & IDE
+.venv/
+venv/
+env/
+.vscode/
+.idea/
+.DS_Store
