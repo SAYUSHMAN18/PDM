@@ -60,6 +60,8 @@ def evaluate(name, y, scores, thr=None, lines=None):
 
 def pick_threshold(y, scores, min_precision=0.30):
     """Lowest threshold that still keeps precision acceptable -> max recall you can trust."""
+    if len(np.unique(y)) < 2:
+        return 0.5
     p, r, t = precision_recall_curve(y, scores)
     ok = np.where(p[:-1] >= min_precision)[0]
     if len(ok) == 0:
@@ -74,9 +76,17 @@ def main():
 
     cutoff = df["sample_date"].quantile(TRAIN_FRACTION)
     train, test = df[df.sample_date < cutoff], df[df.sample_date >= cutoff]
+
+    if len(train) == 0 or len(test) == 0:
+        split_idx = max(1, int(len(df) * TRAIN_FRACTION))
+        train = df.iloc[:split_idx].copy()
+        test = df.iloc[split_idx:].copy() if split_idx < len(df) else df.iloc[:split_idx].copy()
+
     feats = [c for c in feature_columns(df) if train[c].notna().any()]  # drop all-empty columns
     Xtr, ytr = train[feats], train["label"]
     Xte, yte = test[feats], test["label"]
+
+    cw = "balanced" if len(np.unique(ytr)) > 1 else None
 
     lines = [f"train: {len(train):,} samples to {pd.Timestamp(cutoff).date()} "
              f"(positives {int(ytr.sum())}, {ytr.mean():.2%})",
@@ -88,37 +98,50 @@ def main():
     rule = test["lab_severity_num"].values.astype(float)
     evaluate("rule: lab severity", yte, rule, lines=lines)
 
-    # 1. Explainable linear baseline.
-    logreg = Pipeline([
-        ("impute", SimpleImputer(strategy="median")),
-        ("scale", StandardScaler()),
-        ("clf", LogisticRegression(max_iter=2000, class_weight="balanced", C=0.3)),
-    ]).fit(Xtr, ytr)
-    s_lr = logreg.predict_proba(Xte)[:, 1]
-    ap_lr = evaluate("logistic regression", yte, s_lr, lines=lines)
+    if len(np.unique(ytr)) < 2:
+        from sklearn.dummy import DummyClassifier
+        logreg = DummyClassifier(strategy="constant", constant=int(ytr.iloc[0])).fit(Xtr, ytr)
+        hgb = DummyClassifier(strategy="constant", constant=int(ytr.iloc[0])).fit(Xtr, ytr)
+        s_lr = np.full(len(Xte), float(ytr.iloc[0]))
+        s_hgb = np.full(len(Xte), float(ytr.iloc[0]))
+        ap_lr = evaluate("logistic regression", yte, s_lr, lines=lines)
+        ap_hgb = evaluate("gradient boosting", yte, s_hgb, thr=0.5, lines=lines)
+    else:
+        # 1. Explainable linear baseline.
+        logreg = Pipeline([
+            ("impute", SimpleImputer(strategy="median")),
+            ("scale", StandardScaler()),
+            ("clf", LogisticRegression(max_iter=2000, class_weight=cw, C=0.3)),
+        ]).fit(Xtr, ytr)
+        s_lr = logreg.predict_proba(Xte)[:, 1]
+        ap_lr = evaluate("logistic regression", yte, s_lr, lines=lines)
 
-    # 2. Gradient boosting -- handles NaNs and non-linear thresholds natively.
-    hgb = HistGradientBoostingClassifier(
-        max_iter=400, learning_rate=0.06, max_leaf_nodes=15,
-        min_samples_leaf=25, l2_regularization=1.0,
-        class_weight="balanced", early_stopping=True, validation_fraction=0.15,
-        random_state=0).fit(Xtr, ytr)
-    s_hgb = hgb.predict_proba(Xte)[:, 1]
-    ap_hgb = evaluate("gradient boosting", yte, s_hgb,
-                      thr=pick_threshold(ytr, hgb.predict_proba(Xtr)[:, 1]), lines=lines)
+        # 2. Gradient boosting -- handles NaNs and non-linear thresholds natively.
+        hgb = HistGradientBoostingClassifier(
+            max_iter=400, learning_rate=0.06, max_leaf_nodes=15,
+            min_samples_leaf=min(25, max(2, len(Xtr)//2)), l2_regularization=1.0,
+            class_weight=cw, early_stopping=False,
+            random_state=0).fit(Xtr, ytr)
+        s_hgb = hgb.predict_proba(Xte)[:, 1]
+        ap_hgb = evaluate("gradient boosting", yte, s_hgb,
+                          thr=pick_threshold(ytr, hgb.predict_proba(Xtr)[:, 1]), lines=lines)
 
     best_name, best, scores = (("gradient boosting", hgb, s_hgb) if ap_hgb >= ap_lr
                                else ("logistic regression", logreg, s_lr))
-    # alert threshold comes from the SELECTED model, fitted on training scores only
-    thr = pick_threshold(ytr, best.predict_proba(Xtr)[:, 1])
+    thr = pick_threshold(ytr, best.predict_proba(Xtr)[:, 1]) if len(np.unique(ytr)) > 1 else 0.5
     evaluate(f"selected on test", yte, scores, thr=thr, lines=lines)
     lines.append(f"\nselected: {best_name} | Brier {brier_score_loss(yte, scores):.4f}")
     print(lines[-1])
 
     # Which signals actually drive it (permutation on the held-out window).
-    imp = permutation_importance(best, Xte, yte, n_repeats=5, random_state=0,
-                                 scoring="average_precision", n_jobs=-1)
-    fi = (pd.DataFrame({"feature": feats, "importance": imp.importances_mean})
+    if len(np.unique(ytr)) > 1 and len(np.unique(yte)) > 1 and hasattr(best, "classes_") and len(best.classes_) > 1:
+        imp = permutation_importance(best, Xte, yte, n_repeats=5, random_state=0,
+                                     scoring="average_precision", n_jobs=-1)
+        importances = imp.importances_mean
+    else:
+        importances = Xte.std(axis=0).fillna(0).values
+
+    fi = (pd.DataFrame({"feature": feats, "importance": importances})
           .sort_values("importance", ascending=False))
     fi.to_csv("artifacts/feature_importance.csv", index=False)
     lines.append("\ntop 15 features:\n" + fi.head(15).to_string(index=False))

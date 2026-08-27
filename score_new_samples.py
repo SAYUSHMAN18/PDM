@@ -77,10 +77,12 @@ def main(top: int, horizon_note: int = 30):
                 .reset_index(drop=True))
 
     X = latest[bundle["features"]]
-    latest["risk"] = bundle["model"].predict_proba(X)[:, 1]
-    latest["risk_level"] = pd.cut(latest["risk"], [-1, bundle["threshold"] * 0.5,
-                                                   bundle["threshold"], 0.5, 1.1],
-                                  labels=["LOW", "WATCH", "HIGH", "CRITICAL"])
+    probs = bundle["model"].predict_proba(X)
+    latest["risk"] = probs[:, 1] if (hasattr(probs, "shape") and probs.shape[1] > 1) else probs[:, 0]
+    latest["risk_level"] = pd.cut(latest["risk"], [-1.0, max(0.01, bundle["threshold"] * 0.5),
+                                                   bundle["threshold"], 0.75, 1.1],
+                                  labels=["LOW", "WATCH", "HIGH", "CRITICAL"],
+                                  duplicates="drop")
 
     out_cols = ["machine_id", "machine_type", "component", "sample_date", "smu_hours",
                 "oil_hours", "lab_severity", "risk", "risk_level"]

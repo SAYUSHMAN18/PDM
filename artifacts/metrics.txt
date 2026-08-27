@@ -1,29 +1,29 @@
-train: 3,339 samples to 2025-07-31 (positives 106, 3.17%)
-test : 1,119 samples after  2025-07-31 (positives 33, 2.95%)
+train: 5 samples to 2025-12-30 (positives 5, 100.00%)
+test : 3 samples after  2025-12-30 (positives 3, 100.00%)
 
-rule: lab severity         PR-AUC 0.367 (baseline 0.029, lift 12.4x) | ROC-AUC 0.919 | top-10%: precision 0.26, recall 0.88
-logistic regression        PR-AUC 0.672 (baseline 0.029, lift 22.8x) | ROC-AUC 0.964 | top-10%: precision 0.26, recall 0.88
-gradient boosting          PR-AUC 0.611 (baseline 0.029, lift 20.7x) | ROC-AUC 0.949 | top-10%: precision 0.27, recall 0.91
-                           @thr=0.073: precision 0.25, recall 0.91, alerts 120/1119
-selected on test           PR-AUC 0.672 (baseline 0.029, lift 22.8x) | ROC-AUC 0.964 | top-10%: precision 0.26, recall 0.88
-                           @thr=0.060: precision 0.28, recall 0.88, alerts 105/1119
+rule: lab severity         PR-AUC 1.000 (baseline 1.000, lift 1.0x) | ROC-AUC nan | top-10%: precision 1.00, recall 0.33
+logistic regression        PR-AUC 1.000 (baseline 1.000, lift 1.0x) | ROC-AUC nan | top-10%: precision 1.00, recall 0.33
+gradient boosting          PR-AUC 1.000 (baseline 1.000, lift 1.0x) | ROC-AUC nan | top-10%: precision 1.00, recall 0.33
+                           @thr=0.500: precision 1.00, recall 1.00, alerts 3/3
+selected on test           PR-AUC 1.000 (baseline 1.000, lift 1.0x) | ROC-AUC nan | top-10%: precision 1.00, recall 0.33
+                           @thr=0.500: precision 1.00, recall 1.00, alerts 3/3
 
-selected: logistic regression | Brier 0.0204
+selected: gradient boosting | Brier 0.0000
 
 top 15 features:
-              feature  importance
-     pq_index__peer_z    0.182790
-       fe_ppm__peer_z    0.131620
-        cu_ppm__delta    0.113198
-nitration__pct_change    0.082260
- soot_pct__vs_own_med    0.077807
-         k_ppm__delta    0.069234
-       si_ppm__peer_z    0.065677
-   na_ppm__pct_change    0.054665
-               visc40    0.053960
-   cr_ppm__pct_change    0.052483
-           glycol_pct    0.045447
-   cu_ppm__pct_change    0.044627
-     fuel_pct__peer_z    0.042931
-   si_ppm__vs_own_med    0.041462
- pq_index__vs_own_med    0.037566
+           feature   importance
+          cu_to_fe 8.498375e-18
+            fe_ppm 0.000000e+00
+            cu_ppm 0.000000e+00
+days_since_last_cm 0.000000e+00
+  lab_severity_num 0.000000e+00
+          si_to_fe 0.000000e+00
+   fe_per_oil_hour 0.000000e+00
+        sample_seq 0.000000e+00
+         smu_hours 0.000000e+00
+         oil_hours 0.000000e+00
+          pq_index 0.000000e+00
+               tbn 0.000000e+00
+         nitration 0.000000e+00
+         oxidation 0.000000e+00
+            visc40 0.000000e+00

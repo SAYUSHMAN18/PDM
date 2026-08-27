@@ -1,6 +1,6 @@
 {
-  "cutoff": "2025-07-31",
-  "threshold": 0.0601198189487836,
-  "model": "logistic regression",
-  "n_features": 129
+  "cutoff": "2025-12-30",
+  "threshold": 0.5,
+  "model": "gradient boosting",
+  "n_features": 26
 }
