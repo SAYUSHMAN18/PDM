@@ -1,0 +1,171 @@
+{
+  "pilot_fleet": {
+    "model_family": "Caterpillar 988 Wheel Loaders",
+    "target_models": [
+      "988F_CAT",
+      "988G_CAT",
+      "988F",
+      "988G"
+    ],
+    "sites": [
+      "Mansfield OH",
+      "024901_DHRN"
+    ]
+  },
+  "asset_crosswalk": [
+    {
+      "equip_num": "120-000053",
+      "serial_num": "2ZR00294",
+      "tms_asset_id": "120-000053",
+      "model": "988F_CAT",
+      "site": "Mansfield OH",
+      "status": "ACTIVE"
+    },
+    {
+      "equip_num": "120-000378",
+      "serial_num": "BNH00655",
+      "tms_asset_id": "120-000378",
+      "model": "988G_CAT",
+      "site": "Mansfield OH",
+      "status": "ACTIVE"
+    }
+  ],
+  "compartment_taxonomy": {
+    "FD_FR_LT": {
+      "family": "FINAL_DRIVE",
+      "position": "Front Left",
+      "sump_volume_liters": 45.0,
+      "oil_change_hours": 2000
+    },
+    "FD_FR_RT": {
+      "family": "FINAL_DRIVE",
+      "position": "Front Right",
+      "sump_volume_liters": 45.0,
+      "oil_change_hours": 2000
+    },
+    "DIFF_FR": {
+      "family": "DIFFERENTIAL",
+      "position": "Front",
+      "sump_volume_liters": 85.0,
+      "oil_change_hours": 2000
+    },
+    "DIFF_RR": {
+      "family": "DIFFERENTIAL",
+      "position": "Rear",
+      "sump_volume_liters": 85.0,
+      "oil_change_hours": 2000
+    },
+    "WH_FR_RT": {
+      "family": "WHEEL_END",
+      "position": "Front Right",
+      "sump_volume_liters": 25.0,
+      "oil_change_hours": 1000
+    },
+    "WH_FR_LT": {
+      "family": "WHEEL_END",
+      "position": "Front Left",
+      "sump_volume_liters": 25.0,
+      "oil_change_hours": 1000
+    },
+    "WH_RR_RT": {
+      "family": "WHEEL_END",
+      "position": "Rear Right",
+      "sump_volume_liters": 25.0,
+      "oil_change_hours": 1000
+    },
+    "WH_RR_LT": {
+      "family": "WHEEL_END",
+      "position": "Rear Left",
+      "sump_volume_liters": 25.0,
+      "oil_change_hours": 1000
+    },
+    "ENGINE": {
+      "family": "ENGINE",
+      "position": "Crankcase",
+      "sump_volume_liters": 60.0,
+      "oil_change_hours": 500
+    },
+    "TRANSMISSION": {
+      "family": "TRANSMISSION",
+      "position": "Main Pack",
+      "sump_volume_liters": 110.0,
+      "oil_change_hours": 1000
+    },
+    "HYDRAULIC": {
+      "family": "HYDRAULIC",
+      "position": "Main Tank",
+      "sump_volume_liters": 220.0,
+      "oil_change_hours": 2000
+    }
+  },
+  "fmeca_matrix": [
+    {
+      "component_family": "ENGINE",
+      "failure_mode": "BEARING_WEAR",
+      "oil_detectability": "HIGH",
+      "key_analytes": [
+        "pb_ppm",
+        "cu_ppm",
+        "fe_ppm",
+        "pq_index"
+      ],
+      "severity_score": 9,
+      "avg_repair_cost_usd": 35000.0,
+      "description": "Crankcase / rod bearing wear releasing lead, copper, and iron debris."
+    },
+    {
+      "component_family": "FINAL_DRIVE",
+      "failure_mode": "SEAL_LEAK_DIRT_ENTRY",
+      "oil_detectability": "HIGH",
+      "key_analytes": [
+        "si_ppm",
+        "al_ppm",
+        "fe_ppm",
+        "water_pct"
+      ],
+      "severity_score": 8,
+      "avg_repair_cost_usd": 18000.0,
+      "description": "Duo-cone seal degradation allowing dirt and moisture ingress."
+    },
+    {
+      "component_family": "DIFFERENTIAL",
+      "failure_mode": "GEAR_PACK_WEAR",
+      "oil_detectability": "HIGH",
+      "key_analytes": [
+        "fe_ppm",
+        "cr_ppm",
+        "pq_index"
+      ],
+      "severity_score": 8,
+      "avg_repair_cost_usd": 22000.0,
+      "description": "Hypoid gear teeth and pinion wear producing iron and chromium spalling."
+    },
+    {
+      "component_family": "WHEEL_END",
+      "failure_mode": "BEARING_AND_PLANETARY_WEAR",
+      "oil_detectability": "HIGH",
+      "key_analytes": [
+        "fe_ppm",
+        "si_ppm",
+        "al_ppm"
+      ],
+      "severity_score": 7,
+      "avg_repair_cost_usd": 12000.0,
+      "description": "Planetary gear and wheel bearing wear combined with dirt ingress."
+    },
+    {
+      "component_family": "ENGINE",
+      "failure_mode": "COOLANT_LEAK",
+      "oil_detectability": "VERY_HIGH",
+      "key_analytes": [
+        "glycol_pct",
+        "na_ppm",
+        "k_ppm",
+        "water_pct"
+      ],
+      "severity_score": 10,
+      "avg_repair_cost_usd": 40000.0,
+      "description": "EGR or head gasket leak passing coolant into crankcase oil."
+    }
+  ]
+}

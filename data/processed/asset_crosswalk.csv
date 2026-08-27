@@ -1,0 +1,5 @@
+equip_num,serial_num,tms_asset_id,model,manufacturer,site_id,site_desc
+120-000053,2ZR00294,120-000053,988F_CAT,CATERPILLAR,024901_DHRN,024901 - Mansfield OH
+120-000378,BNH00655,120-000378,988G_CAT,CATERPILLAR,024801_DHRN,"024801 - Nucor Steel Decatur, AL"
+100000064,63W02218,100-000064,773B,CAT,2801,"Truck, Off-Highway - Caterpillar 773 B"
+100000064,63W02218,100-000064,773,CAT,2801,"Truck, Off-Highway - Caterpillar 773 B"

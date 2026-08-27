@@ -1,0 +1,9 @@
+rank,machine_id,compartment,sample_date,watchlist_score,lab_severity,action_recommended,engineer_outcome,inspection_notes,logged_by,logged_date
+1,120-000378,DIFF_RR,2025-12-15,17.0,AR,Inspect Seals/Filters & Re-sample in 125h,,,,
+2,120-000378,WH_RR_RT,2025-12-15,17.0,AR,Inspect Seals/Filters & Re-sample in 125h,,,,
+3,120-000378,WH_RR_LT,2025-12-15,17.0,AR,Inspect Seals/Filters & Re-sample in 125h,,,,
+4,120-000053,FD_FR_LT,2025-12-30,13.0,AR,Inspect Seals/Filters & Re-sample in 125h,,,,
+5,120-000053,DIFF_FR,2025-12-30,13.0,AR,Inspect Seals/Filters & Re-sample in 125h,,,,
+6,120-000053,FD_FR_RT,2025-12-30,13.0,AR,Inspect Seals/Filters & Re-sample in 125h,,,,
+7,120-000378,WH_FR_RT,2025-12-15,13.0,AR,Inspect Seals/Filters & Re-sample in 125h,,,,
+8,120-000378,WH_FR_LT,2025-12-15,13.0,AR,Inspect Seals/Filters & Re-sample in 125h,,,,

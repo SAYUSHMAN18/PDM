@@ -1,0 +1,26 @@
+{
+  "canonical_samples_count": 8,
+  "label_governance_audit": {
+    "total_work_orders": 0,
+    "reliable_pm_cm_pct": 0.0,
+    "single_compartment_mapping_pct": 0.0,
+    "avg_reporting_lag_days": 0.0,
+    "label_governance_pass": true
+  },
+  "sampling_discipline_audit": {
+    "total_samples": 8,
+    "oil_hours_compliance_pct": 37.5,
+    "smu_hours_compliance_pct": 100.0,
+    "fluid_changed_flag_compliance_pct": 100.0
+  },
+  "physics_normalization": {
+    "metals_converted_to_mass_rate": [
+      "fe",
+      "cu",
+      "al",
+      "pb",
+      "si"
+    ],
+    "oil_density_g_per_l": 880.0
+  }
+}

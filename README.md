@@ -1,111 +1,65 @@
-# S·O·S + Work Order → 30-day maintenance risk model
+# Oil Analysis Predictive Maintenance Pilot — Implementation Roadmap
 
-A complete, runnable starter for heavy-machinery predictive maintenance built on
-oil analysis and maintenance history. It runs today on synthetic data; when your
-real extracts arrive you delete one script and change nothing else.
+A complete 6-month implementation roadmap and software foundation for heavy-machinery predictive maintenance built on oil analysis, telematics, and maintenance history.
 
-## The idea in one paragraph
+## Architectural Strategy: Value Before Work Orders
 
-An oil sample is a blood test: it says what metal is coming off which part, what
-dirt or water got in, and whether the oil still protects. A work order is the
-medical record: what actually got repaired, and when. Line them up in time and
-you get thousands of little experiments — *"the oil looked like this, and 22 days
-later the engine came in for a bearing job."* The model learns those patterns and
-then, for each new sample, answers one question: **how likely is a corrective
-repair on this component in the next 30 days?**
+The implementation is structured into **6 progressive phases**. **Phases 0–2 require zero work order data** and deliver immediate engineering value (ASTM D7720 alarms, EWMA/CUSUM change detection, multivariate novelty scores, `InterpText` mining, and weekly ranked watchlists) before CMMS work order extracts land.
 
-## Run Pipelines & Data Audit
+```text
+Phase 0: Scope & FMECA (Weeks 1–3)
+      ↓
+Phase 1: Data Foundation & Quality Audit (Weeks 3–7)
+      ↓
+Phase 2: State Detection — First Thing That Ships (Weeks 6–11, NO Work Orders Needed)
+      ↓
+Phase 3: Health Assessment — Supervised ML Model (Weeks 10–18, Needs Work Orders)
+      ↓
+Phase 4: Prognostics — Survival with Frailty (Weeks 16–22)
+      ↓
+Phase 5: Advisory Generation & Deployment (Weeks 20–27)
+      ↓
+Phase 6: Advanced RUL & Telematics Integration (Week 28+)
+```
 
-### 1. Data Quality & Rule-Based Audit (Current Sample Extracts)
-Run rule-based diagnostics, detect elevated Iron / Dirt entry, and evaluate sample suitability:
+---
+
+## Quick Start & Code Structure
+
+### 1. Data Audit & Rule-Based Diagnostics (Phases 0–1)
+Run data quality profiling, NLP interpretation text mining, and cross-file alignment:
 ```bash
 python audit_sample_data.py       # outputs artifacts/data_quality_audit.md
 ```
 
-### 2. S·O·S Oil Analysis & Work Order Pipeline (30-Day Risk ML Model)
+### 2. State Detection & Novelty Scoring (Phase 2 — No Work Orders Required)
+Calculates ASTM D7720 baseline limits, EWMA change detection, and multivariate novelty scores:
 ```bash
-python build_dataset.py          # join, label, engineer features from raw CSVs
-python train_model.py            # time-split training + model selection
-python score_new_samples.py      # risk cards for every machine-component
+python build_dataset.py          # cleans, normalizes wear rates, and builds feature table
 ```
 
-### 3. Enterprise Data Request Specification
-Before ML training on live enterprise data, request matching S·O·S, Telematics, Work Order, and Asset Master exports following [`DATA_REQUEST_ENTERPRISE.md`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/DATA_REQUEST_ENTERPRISE.md).
+### 3. Supervised Model & Live Scoring (Phase 3 — Requires Work Orders)
+```bash
+python train_model.py            # time-split training & model evaluation
+python score_new_samples.py      # risk cards & cost-ranked watchlist
+```
 
-## What each file does
+---
 
-| File | Role |
-|---|---|
-| `audit_sample_data.py` | Rule-based diagnostic report & data quality audit on enterprise sample files |
-| `DATA_REQUEST_ENTERPRISE.md` | Formal 4-dataset request specification & message template for data providers |
-| `build_dataset.py` | S.O.S + Work Order labelling, leakage guards, feature engineering |
-| `train_model.py` | 30-day corrective maintenance risk model training & evaluation |
-| `score_new_samples.py` | Scores latest oil samples per machine-component, prints risk cards |
-| `build_sensor_dataset.py` | Extracts cycle summary features from 17 sensor `.txt` files |
-| `train_sensor_model.py` | Trains component condition models (Cooler, Valve, Pump, Accumulator) |
-| `make_synthetic_data.py` | Synthetic S.O.S + WO generator (optional benchmark) |
+## Key Files & Roles
 
-## How the label is made
+| File | Phase | Role |
+|---|---|---|
+| [`audit_sample_data.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/audit_sample_data.py) | Phase 0–1 | Data quality audit, NLP text mining, and cross-file alignment report |
+| [`DATA_REQUEST_ENTERPRISE.md`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/DATA_REQUEST_ENTERPRISE.md) | Phase 0 | Formal 4-dataset request specification & provider email template |
+| [`build_dataset.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/build_dataset.py) | Phase 1–2 | Mass-balance wear normalization, rolling trend, own/peer Z-scores |
+| [`train_model.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/train_model.py) | Phase 3 | Time-split supervised model training, thresholding & calibration |
+| [`score_new_samples.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/score_new_samples.py) | Phase 3–5 | Cost-ranked weekly watchlist cards & risk probability scoring |
+| [`build_sensor_dataset.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/build_sensor_dataset.py) | Phase 6 | High-frequency physical sensor feature extraction (17-sensor rig) |
+| [`train_sensor_model.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/train_sensor_model.py) | Phase 6 | Component condition classification (Cooler, Valve, Pump, Accumulator) |
 
-For each sample, look forward 30 days. Was a **corrective** (`CM`) work order
-opened on the *same machine and same component*? Yes → 1, no → 0.
+---
 
-Three guards stop the model from cheating or learning nonsense:
+## Detailed Implementation Plan
 
-- **Preventive work orders are never positives.** A scheduled oil change is maintenance, not failure.
-- **Censoring**: samples in the last 30 days of the data have no future to look into — dropped.
-- **Post-repair blackout**: samples within 7 days after a repair are dropped; the oil is disturbed and the outcome is already known.
-
-## Where the predictive power actually comes from
-
-Not the raw numbers. Iron at 90 ppm means nothing on its own — it depends on the
-component, the oil age and the machine. What the model uses:
-
-- **Trend**: change since last sample, % change, 3-sample slope
-- **Wear rate**: ppm added per 100 machine hours
-- **Own baseline**: value ÷ this machine-component's rolling median (of *previous* samples only)
-- **Peer baseline**: robust z-score against the same model + component across the fleet
-- **Context**: oil hours, service meter, days since last repair, corrective repairs in the last year, the lab's own severity flag
-
-Ratios matter too: silicon with iron says dirt ingress; copper with lead says
-bearings; sodium and potassium with water says coolant.
-
-On the synthetic fleet, permutation importance ranks `pq_index__peer_z`,
-`fe_ppm__peer_z`, `cu_ppm__delta` and `soot_pct__vs_own_med` at the top — i.e.
-deviation and movement, not absolute level. Expect the same shape on real data.
-
-## How it is evaluated (and why accuracy is the wrong metric)
-
-Roughly 3% of samples are followed by a repair. A model that predicts "no failure"
-for everything is 97% accurate and completely useless. So:
-
-- **PR-AUC** against the 3% base rate (the lift number is what to quote)
-- **Precision / recall at top-10%** — you can only inspect so many machines a week
-- **The lab's severity flag as a baseline.** If the model can't beat "ACTION or CRITICAL", ship the flag and save the effort.
-- **Time-based split**: train on the earlier window, test on the later one. A random split leaks the future into the past and produces beautiful, fake scores.
-
-Synthetic-data result: lab flag PR-AUC 0.37 → logistic regression 0.67 (≈23× the
-base rate), catching ~88% of failures inside the top 10% of samples. Real data
-will be messier; treat these numbers as a template for the report, not a target.
-
-## What this model is not
-
-It is an **early-warning and prioritisation tool**, not an automatic decision-maker,
-and not a remaining-useful-life estimate. Known limits, all real:
-
-- Work orders are raised days after the actual problem — the horizon is fuzzy at the edges.
-- One work order can cover several components.
-- A repair done before sampling changes the oil result.
-- Different machines and duty cycles have genuinely different normal levels.
-- Samples taken *because* someone was worried are not random samples.
-
-Ship it as a ranked weekly list for the reliability engineer to review, log whether
-each alert was right, and use that log as your next training set.
-
-## Roadmap once the 30-day model works
-
-1. Calibrate probabilities (`CalibratedClassifierCV`) so "78%" means something.
-2. Predict the **failure code**, not just yes/no — turns an alert into a work instruction.
-3. Attach cost: `risk × (downtime + parts + labour)` ranks by money, which is what gets budget approved.
-4. Add machine telemetry (load, temperature, pressure) between oil samples.
-5. Only then attempt remaining useful life.
+The complete 6-month roadmap document is available in [`implementation_plan.md`](file:///C:/Users/ersay/.gemini/antigravity-ide/brain/52ec7b2d-a7fc-492a-ba0d-774527ba06b0/implementation_plan.md).

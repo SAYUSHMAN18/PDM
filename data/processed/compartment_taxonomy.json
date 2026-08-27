@@ -1,0 +1,67 @@
+{
+  "FD_FR_LT": {
+    "family": "FINAL_DRIVE",
+    "position": "FRONT_LEFT",
+    "desc": "Front Left Final Drive"
+  },
+  "FD_FR_RT": {
+    "family": "FINAL_DRIVE",
+    "position": "FRONT_RIGHT",
+    "desc": "Front Right Final Drive"
+  },
+  "FD_RR_LT": {
+    "family": "FINAL_DRIVE",
+    "position": "REAR_LEFT",
+    "desc": "Rear Left Final Drive"
+  },
+  "FD_RR_RT": {
+    "family": "FINAL_DRIVE",
+    "position": "REAR_RIGHT",
+    "desc": "Rear Right Final Drive"
+  },
+  "DIFF_FR": {
+    "family": "DIFFERENTIAL",
+    "position": "FRONT",
+    "desc": "Front Differential"
+  },
+  "DIFF_RR": {
+    "family": "DIFFERENTIAL",
+    "position": "REAR",
+    "desc": "Rear Differential"
+  },
+  "WH_FR_LT": {
+    "family": "WHEEL_END",
+    "position": "FRONT_LEFT",
+    "desc": "Front Left Wheel End"
+  },
+  "WH_FR_RT": {
+    "family": "WHEEL_END",
+    "position": "FRONT_RIGHT",
+    "desc": "Front Right Wheel End"
+  },
+  "WH_RR_LT": {
+    "family": "WHEEL_END",
+    "position": "REAR_LEFT",
+    "desc": "Rear Left Wheel End"
+  },
+  "WH_RR_RT": {
+    "family": "WHEEL_END",
+    "position": "REAR_RIGHT",
+    "desc": "Rear Right Wheel End"
+  },
+  "ENGINE": {
+    "family": "ENGINE",
+    "position": "MAIN",
+    "desc": "Main Engine Crankcase"
+  },
+  "TRANSMISSION": {
+    "family": "TRANSMISSION",
+    "position": "MAIN",
+    "desc": "Power Shift Transmission"
+  },
+  "HYDRAULIC": {
+    "family": "HYDRAULIC",
+    "position": "MAIN",
+    "desc": "Hydraulic System Tank & Pump"
+  }
+}
