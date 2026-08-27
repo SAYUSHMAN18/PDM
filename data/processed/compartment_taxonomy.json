@@ -2,66 +2,66 @@
   "FD_FR_LT": {
     "family": "FINAL_DRIVE",
     "position": "FRONT_LEFT",
-    "desc": "Front Left Final Drive"
+    "oil_volume_l": 45.0
   },
   "FD_FR_RT": {
     "family": "FINAL_DRIVE",
     "position": "FRONT_RIGHT",
-    "desc": "Front Right Final Drive"
+    "oil_volume_l": 45.0
   },
   "FD_RR_LT": {
     "family": "FINAL_DRIVE",
     "position": "REAR_LEFT",
-    "desc": "Rear Left Final Drive"
+    "oil_volume_l": 45.0
   },
   "FD_RR_RT": {
     "family": "FINAL_DRIVE",
     "position": "REAR_RIGHT",
-    "desc": "Rear Right Final Drive"
+    "oil_volume_l": 45.0
   },
   "DIFF_FR": {
     "family": "DIFFERENTIAL",
     "position": "FRONT",
-    "desc": "Front Differential"
+    "oil_volume_l": 85.0
   },
   "DIFF_RR": {
     "family": "DIFFERENTIAL",
     "position": "REAR",
-    "desc": "Rear Differential"
+    "oil_volume_l": 85.0
   },
   "WH_FR_LT": {
     "family": "WHEEL_END",
     "position": "FRONT_LEFT",
-    "desc": "Front Left Wheel End"
+    "oil_volume_l": 25.0
   },
   "WH_FR_RT": {
     "family": "WHEEL_END",
     "position": "FRONT_RIGHT",
-    "desc": "Front Right Wheel End"
+    "oil_volume_l": 25.0
   },
   "WH_RR_LT": {
     "family": "WHEEL_END",
     "position": "REAR_LEFT",
-    "desc": "Rear Left Wheel End"
+    "oil_volume_l": 25.0
   },
   "WH_RR_RT": {
     "family": "WHEEL_END",
     "position": "REAR_RIGHT",
-    "desc": "Rear Right Wheel End"
+    "oil_volume_l": 25.0
   },
   "ENGINE": {
     "family": "ENGINE",
-    "position": "MAIN",
-    "desc": "Main Engine Crankcase"
-  },
-  "TRANSMISSION": {
-    "family": "TRANSMISSION",
-    "position": "MAIN",
-    "desc": "Power Shift Transmission"
+    "position": "PRIMARY",
+    "oil_volume_l": 60.0
   },
   "HYDRAULIC": {
     "family": "HYDRAULIC",
-    "position": "MAIN",
-    "desc": "Hydraulic System Tank & Pump"
+    "position": "PRIMARY",
+    "oil_volume_l": 150.0
+  },
+  "TRANSMISSION": {
+    "family": "TRANSMISSION",
+    "position": "PRIMARY",
+    "oil_volume_l": 110.0
   }
 }

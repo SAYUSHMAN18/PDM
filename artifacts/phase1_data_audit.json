@@ -1,26 +1,19 @@
 {
-  "canonical_samples_count": 8,
+  "phase": "Phase 1 - Data Foundation & Quality Audit",
   "label_governance_audit": {
-    "total_work_orders": 0,
-    "reliable_pm_cm_pct": 0.0,
-    "single_compartment_mapping_pct": 0.0,
-    "avg_reporting_lag_days": 0.0,
-    "label_governance_pass": true
+    "total_work_orders": 8,
+    "corrective_wo_count": 8,
+    "preventive_wo_count": 0,
+    "wo_to_compartment_mapping_share": 1.0,
+    "avg_reporting_lag_days": 3.0,
+    "stop_and_fix_condition_triggered": false
   },
   "sampling_discipline_audit": {
     "total_samples": 8,
-    "oil_hours_compliance_pct": 37.5,
-    "smu_hours_compliance_pct": 100.0,
-    "fluid_changed_flag_compliance_pct": 100.0
+    "samples_with_valid_oil_hours_share": 1.0,
+    "fluid_changed_flag_tracked": false,
+    "sampling_discipline_rating": "GOOD"
   },
-  "physics_normalization": {
-    "metals_converted_to_mass_rate": [
-      "fe",
-      "cu",
-      "al",
-      "pb",
-      "si"
-    ],
-    "oil_density_g_per_l": 880.0
-  }
+  "canonical_sample_count": 8,
+  "physics_mass_rates_calculated": true
 }

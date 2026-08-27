@@ -1,6 +1,30 @@
-Train Set: 5 samples (Positives: 5, 100.0%)
-Test Set : 3 samples (Positives: 3, 100.0%)
+Phase 3 — Supervised Health Assessment Model Evaluation
+========================================================
+Horizon Sweep Results: {
+  "14": {
+    "total_samples": 8,
+    "positive_rate": 1.0,
+    "positives": 8
+  },
+  "30": {
+    "total_samples": 8,
+    "positive_rate": 1.0,
+    "positives": 8
+  },
+  "60": {
+    "total_samples": 8,
+    "positive_rate": 1.0,
+    "positives": 8
+  },
+  "90": {
+    "total_samples": 8,
+    "positive_rate": 1.0,
+    "positives": 8
+  }
+}
+Selected Horizon     : 30 days
+Train Samples        : 6 (Positives: 6)
+Test Samples         : 2 (Positives: 2)
 
-Selected Model       : Rule/Baseline Classifier
-Average Precision (AP): 1.000
-Brier Score Loss     : 0.0000
+Model Selected : Dummy Classifier (Single Class)
+Brier Score    : 0.0000
