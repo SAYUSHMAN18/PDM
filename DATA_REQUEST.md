@@ -1,49 +1,66 @@
-# What to ask for when you request the S·O·S and work-order extracts
+# Data request — S·O·S oil analysis + work orders + asset master
 
-Hand this page to whoever owns the oil-lab portal and the CMMS. The column names
-are the contract the code expects — if the source uses different names, rename on
-export or map them in `load_raw()`.
+Hand this to whoever owns the oil-lab portal and the CMMS. Deliver **three CSV
+files** into `data/raw/` with these names. The loader (`pdm/data.py`) accepts the
+enterprise column names below *or* the canonical names in parentheses — if the
+source uses something else, rename on export.
 
-## File 1 — `sos_samples.csv` (one row per oil sample)
+Ask for **24–36 months** of history and **every** sample, not just flagged ones —
+a model trained only on flagged samples never learns what normal looks like.
 
-| Column | Type | Why the model needs it |
+---
+
+## 1. `sos_samples.csv` — one row per oil sample
+
+| Column (aliases accepted) | Type | Why it is needed |
 |---|---|---|
-| `sample_id` | text | de-duplicate re-issued lab reports |
-| `machine_id` | text | join key to work orders — **must match the CMMS asset ID exactly** |
-| `machine_type`, `model` | text | peer comparison (an iron level that is normal for a haul truck is not normal for an excavator) |
-| `component` | text | ENGINE / HYDRAULIC / TRANSMISSION / FINAL_DRIVE — the model is per component |
-| `sample_date` | date | the clock everything is aligned to |
-| `smu_hours` | number | machine service meter at sampling |
-| `oil_hours` | number | hours on the *oil* since the last change — without this, iron is uninterpretable |
-| `oil_changed` | Y/N | flags the reset point |
-| `fe_ppm cu_ppm cr_ppm pb_ppm al_ppm` | number | wear metals — which part is wearing |
-| `si_ppm na_ppm k_ppm` | number | contamination — dirt, coolant |
-| `water_pct fuel_pct glycol_pct soot_pct` | number | contamination and combustion |
-| `visc40 oxidation nitration tbn` | number | is the oil still doing its job |
-| `pq_index` | number | large ferrous debris (catches what ICP misses) |
-| `lab_severity` | NORMAL/MONITOR/ACTION/CRITICAL | the lab's own call — your benchmark to beat |
+| `SampleNum` (`sample_id`) | text | de-duplicate re-issued lab reports |
+| `EquipNum` (`machine_id`) | text | **join key to work orders — must match the CMMS asset ID exactly** |
+| `SerialNum`, `EqpModel` (`serial`, `model`) | text | peer comparison (normal iron for a haul truck ≠ normal for a loader) |
+| `Compartment` (`component`) | text | `ENGINE` / `HYDRAULIC` / `TRANSMISSION` / `DIFF_RR` / `FD_FR_LT` … — model is per compartment |
+| `DateSampled` (`sample_date`) | date | the clock everything is aligned to |
+| `DateProcessed` (`processed_date`) | date | lab turnaround / reporting lag |
+| `CMeter` (`smu_hours`) | number | machine service-meter hours at sampling |
+| `CMeterFluid` (`oil_hours`) | number | hours on the **oil** since the last change — without this, iron is uninterpretable |
+| `FluidChanged` (`fluid_changed`) | Y/N | the oil-run reset point; trends must not cross it |
+| `MakeUpFluid` (`makeup_fluid_l`) | number (L) | top-up volume — dilutes concentrations |
+| `Fe Cu Cr Pb Al Si` | number (ppm) | wear metals — which part is wearing |
+| `Na K` | number (ppm) | coolant / additive contamination |
+| `Water Fuel Glycol Soot` | number (%) | contamination and combustion by-products |
+| `Visc100 Oxidation Nitration TBN` | number | is the oil still doing its job |
+| `PQ` (`pq_index`) | number | large ferrous debris (catches what ICP misses) |
+| `OverallInterp` (`lab_code`) | A/B/AR/CR … | the lab's own severity call — the benchmark to beat |
+| `InterpText` (`interp_text`) | text | the chemist's prose diagnosis — mined into flags, and a weak-label source |
+| `WorkOrderId` (`wo_ref`) | text | optional direct link to a work order |
 
-Ask for **at least 24–36 months** of history and *all* samples, not just flagged ones.
-A model trained only on flagged samples never learns what normal looks like.
+## 2. `work_orders.csv` — one row per work order
 
-## File 2 — `work_orders.csv` (one row per work order)
-
-| Column | Type | Why |
+| Column (aliases accepted) | Type | Why |
 |---|---|---|
-| `wo_id` | text | key |
-| `machine_id` | text | join key |
-| `component` | text | same vocabulary as the sample file — this is the single most common data problem |
-| `wo_type` | PM / CM | **critical**: a scheduled oil change is not a failure |
-| `failure_code` | text | later: predict *which* failure, not just whether |
-| `description` | text | sanity-check the labels by eye |
-| `open_date`, `close_date` | date | open_date defines the event; the gap is downtime |
-| `smu_at_wo` | number | cross-check against sample hours |
-| `downtime_hours`, `parts_cost`, `labour_cost` | number | lets you price a prevented failure and justify the project |
+| `WorkOrderId` (`wo_id`) | text | key |
+| `EquipNum` (`machine_id`) | text | join key |
+| `Compartment` (`component`) | text | **same vocabulary as the sample file** — the single most common data problem |
+| `WOType` (`wo_type`) | PM / CM | **critical**: a scheduled oil change is not a failure |
+| `FailureCode` (`failure_code`) | text | later: predict *which* failure, not just whether |
+| `Description` (`description`) | text | eyeball-check the labels |
+| `OpenDate`, `CloseDate` | date | `OpenDate` defines the event; the gap is downtime |
+| `SMUAtWO` (`smu_at_wo`) | number | cross-check against sample hours |
+| `DowntimeHours`, `PartsCost`, `LabourCost` | number | price a prevented failure → justify the pilot |
 
-## Five questions to ask the data owner before you model anything
+## 3. `asset_master.csv` — one row per machine
 
-1. **Is `wo_type` reliable?** If PM/CM is mislabelled or blank, every label is wrong. Ask for the raw maintenance-type field too.
-2. **How late are work orders raised?** A 3-day reporting lag is normal; a 3-week lag means your 30-day horizon is really a 10-day horizon.
-3. **Does one work order cover several components?** If so, ask for the WO task/line-item table, not just the header.
-4. **Do machine IDs survive a component swap?** If an engine is transplanted between machines, its wear history moves with it — you need the component serial, not just the machine ID.
-5. **Are there samples taken *because* someone suspected a problem?** Those are gold for labels but bias the model — flag them if the field exists (`sample_reason`).
+`EquipNum`, `TMSAssetID`, `SerialNum`, `EqpModel`, `ModelFamily`, `SiteId`,
+`SiteName`, `Status`, `CommissionDate`.
+
+---
+
+## Five questions to answer before modelling (Phase 1 gate)
+
+1. **Is `WOType` reliable?** If PM/CM is blank or mislabelled, every training label is wrong.
+2. **How late are work orders raised?** A 3-day lag is fine; a 3-week lag turns a 30-day horizon into a 10-day one.
+3. **Does one work order cover several compartments?** If so, request the WO line-item table, not just the header.
+4. **Do machine IDs survive a component swap?** A transplanted engine carries its wear history — you need the component serial.
+5. **Are some samples taken *because* someone suspected a problem?** Gold for labels, but bias the model — flag them if the field exists.
+
+Until `work_orders.csv` arrives, delete nothing: Phases 0–2 run on `sos_samples.csv`
+alone and still produce the weekly watchlist.

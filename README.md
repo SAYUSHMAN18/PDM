@@ -1,61 +1,82 @@
-# Oil Analysis Predictive Maintenance Pilot — Implementation Roadmap
+# Oil-Analysis Predictive Maintenance Pilot
 
-A complete 6-month implementation roadmap and software foundation for heavy-machinery predictive maintenance built on oil analysis, telematics, and maintenance history.
+A working pipeline that turns **S·O·S fluid analysis** + **work orders** into a
+weekly, cost-ranked maintenance watchlist for heavy machinery (CAT wheel loaders,
+haul trucks, excavators). Built as six progressive phases that mirror the
+ISO 13374 / OSA-CBM reference architecture.
 
-## Architectural Strategy: Value Before Work Orders
+The design rule: **Phases 0–2 need no work orders** and already ship value
+(fleet-relative alarm limits, time-aware change detection, novelty scores, a
+ranked watchlist). Phases 3–5 add supervised risk, survival prognostics and a
+cost-weighted advisory once the CMMS extract lands — and skip themselves cleanly
+until it does.
 
-The implementation is structured into **6 progressive phases**. **Phases 0–2 require zero work order data** and deliver immediate engineering value (ASTM D7720 alarms, EWMA/CUSUM change detection, multivariate novelty scores, `InterpText` mining, and weekly ranked watchlists) before CMMS work order extracts land.
-
-```text
-Phase 0: Scope & FMECA (Weeks 1–3) -> python phase0_scope.py
-      ↓
-Phase 1: Data Foundation & Quality Audit (Weeks 3–7) -> python phase1_foundation.py
-      ↓
-Phase 2: State Detection — First Thing That Ships (Weeks 6–11, NO Work Orders Needed) -> python phase2_state_detection.py
-      ↓
-Phase 3: Health Assessment — Supervised ML Model (Weeks 10–18, Needs Work Orders) -> python phase3_supervised_model.py
-      ↓
-Phase 4: Prognostics — Survival with Frailty (Weeks 16–22) -> python phase4_survival_prognostics.py
-      ↓
-Phase 5: Advisory Generation & Deployment (Weeks 20–27) -> python phase5_advisory_deployment.py
-      ↓
-Phase 6: Advanced RUL & Telematics Integration (Week 28+)
+```
+Phase 0  Scope & FMECA .......... which compartments, which failure modes, which fleet
+Phase 1  Data foundation ........ canonical table, label-governance audit, ppm→mass physics
+Phase 2  State detection ........ ASTM D7720 limits · time-aware EWMA · Mahalanobis novelty
+                                  · InterpText mining · weekly watchlist   [no work orders]
+Phase 3  Health assessment ..... horizon sweep · leakage guards · calibrated GBM vs rule
+Phase 4  Prognostics ........... discrete-time survival hazard · 30/60/90-day risk · frailty
+Phase 5  Advisory & deployment . cost-weighted ranking (risk × failure cost) · ROI · feedback
 ```
 
----
+## Quick start
 
-## Single Unified Execution Command
-
-Run the entire 6-phase pipeline end-to-end with one command:
 ```bash
-python run_pipeline.py
+pip install -r requirements.txt
+python run_pipeline.py --synth        # generate demo data, then run all six phases
 ```
 
-To run a specific phase individually:
 ```bash
-python run_pipeline.py --phase 2   # Runs Phase 2 (State Detection & Watchlist)
+python run_pipeline.py               # re-run on whatever is in data/raw/
+python run_pipeline.py --phase 2     # run one phase
+python -m pdm.score --top 15         # risk cards for the latest sample per machine-compartment
 ```
 
----
+## Running on real data
 
-## Modular File Structure & Roles
+Drop `sos_samples.csv`, `work_orders.csv`, `asset_master.csv` into `data/raw/`
+(column contract in [`DATA_REQUEST.md`](DATA_REQUEST.md)), delete
+`data/raw/.synthetic`, and re-run `python run_pipeline.py`. No code change — the
+loader auto-detects synthetic vs. real vs. sample-only mode and prints which one
+it is using, plus warnings when chemistry or work orders are missing.
 
-| File | Phase | Role |
-|---|---|---|
-| [`run_pipeline.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/run_pipeline.py) | Master | Master entry-point runner for executing all 6 pipeline phases |
-| [`phase0_scope.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/phase0_scope.py) | Phase 0 | Pilot fleet FMECA, asset crosswalk, and compartment taxonomy decoder |
-| [`phase1_foundation.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/phase1_foundation.py) | Phase 1 | Data quality audit, label governance audit, and wear mass rate normalization |
-| [`phase2_state_detection.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/phase2_state_detection.py) | Phase 2 | ASTM D7720 limits, EWMA change detection, novelty scores, and weekly watchlist |
-| [`phase3_supervised_model.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/phase3_supervised_model.py) | Phase 3 | Horizon sweep (14/30/60/90d), leakage guards, model training & calibration |
-| [`phase4_survival_prognostics.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/phase4_survival_prognostics.py) | Phase 4 | Recurrent-event survival frailty prognostics & multi-horizon risk scoring |
-| [`phase5_advisory_deployment.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/phase5_advisory_deployment.py) | Phase 5 | Cost-weighted expected risk ranking ($\text{Risk} \times \text{Cost}$) & ROI valuation |
-| [`audit_sample_data.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/audit_sample_data.py) | Phase 0–1 | S.O.S & Telematics enterprise sample audit & NLP text mining |
-| [`DATA_REQUEST_ENTERPRISE.md`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/DATA_REQUEST_ENTERPRISE.md) | Phase 0 | Formal 4-dataset request specification & email template for data owners |
-| [`build_sensor_dataset.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/build_sensor_dataset.py) | Phase 6 | High-frequency physical sensor feature extraction (17-sensor rig) |
-| [`train_sensor_model.py`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/train_sensor_model.py) | Phase 6 | Hardware rig component condition classifiers (Cooler, Valve, Pump, Accumulator) |
+## Layout
 
----
+| Path | Role |
+|---|---|
+| `pdm/config.py` | one place for paths, taxonomies, cost model, FMECA scope, horizons |
+| `pdm/synth.py` | realistic synthetic S·O·S + WO + asset generator (enterprise schema) |
+| `pdm/data.py` | load raw extracts (synthetic **or** real) → canonical internal schema |
+| `pdm/features.py` | labelling with leakage guards + within-oil-run trend/physics features |
+| `pdm/model.py` | shared time-split, evaluation protocol (PR-AUC, precision@capacity), thresholds |
+| `pdm/phase0_scope.py` … `phase5_advisory.py` | the six phases |
+| `pdm/score.py` | score new samples with the trained Phase 3 model |
+| `run_pipeline.py` | master runner |
+| `artifacts/`, `data/processed/` | generated outputs (git-ignored) |
 
-## Detailed Implementation Plan
+## Outputs worth looking at
 
-The complete 6-month implementation roadmap document is available in [`implementation_plan.md`](file:///C:/Users/ersay/.gemini/antigravity-ide/brain/52ec7b2d-a7fc-492a-ba0d-774527ba06b0/implementation_plan.md).
+- `data/processed/phase2_watchlist.csv` — the weekly ranked list (ships first)
+- `artifacts/d7720_population_limits.csv` — fleet limits vs. generic OEM condemning limits
+- `artifacts/phase3_metrics.txt` — horizon sweep + model-vs-rule comparison on a time split
+- `artifacts/phase4_multi_horizon_risk.csv` — 30/60/90-day survival risk per machine-compartment
+- `data/processed/phase5_cost_ranked_advisories.csv` — the P1/P2/P3 worklist with expected value
+- `artifacts/feedback_capture_table.csv`, `artifacts/advisory_feedback_table.csv` — alert-outcome
+  logs; six months of these become a clean supervised label set
+
+## Notes & honest limits
+
+- **No `xgboost` / `catboost` / `lifelines` dependency.** Phase 3 uses
+  scikit-learn `HistGradientBoostingClassifier` with monotonic constraints
+  (rising iron can never lower predicted risk); Phase 4 is a pooled-logistic
+  discrete-time hazard. Swapping in CatBoost / an Andersen-Gill frailty model is
+  a Phase 6 upgrade, not a rewrite.
+- The synthetic generator is for wiring and demos. Real fault dynamics, reporting
+  lag and label noise are only approximated.
+- Phase 4 frailty is a shrinkage proxy (trailing-year machine WO rate), not a
+  fitted random effect.
+- Treat the system as an **early-warning and prioritisation** tool, not an
+  automatic decision-maker, until the Phase 1 label-governance gate passes on
+  real data.
