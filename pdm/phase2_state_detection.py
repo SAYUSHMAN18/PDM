@@ -181,18 +181,14 @@ def main(ext: Extracts | None = None) -> dict:
     tighter = int(limits["fleet_limit_tighter_than_generic"].sum()) if len(limits) else 0
     top = watchlist.head(10)
 
-    print("Phase 2 - State Detection & Weekly Watchlist  (no work orders used)")
-    print(f"  D7720 limit rows      : {len(limits)}  "
-          f"({tighter} tighter than the generic OEM limit)")
-    print(f"  watchlist entries     : {len(watchlist)}  ->  data/processed/phase2_watchlist.csv")
-    print(f"  feedback table        : {len(feedback)} alerts tracked  ->  artifacts/feedback_capture_table.csv")
-    if not ext.has_chemistry:
-        print("  NOTE: no numeric chemistry -- ranking uses lab severity + InterpText only.")
-    print("\n  Top of this week's watchlist:")
-    for _, r in top.iterrows():
-        print(f"   {r['rank']:>2}. {r['machine_id']:<12} {r['component']:<10} "
-              f"{r['lab_severity']:<9} score {r['priority_score']:>7.1f}  "
-              f"(novelty {r['novelty_z']:+.1f}, D7720x{int(r['d7720_action_exceedances'])})")
+    from . import report
+    report.phase2_summary(
+        n_limits=len(limits),
+        n_tighter=tighter,
+        n_watchlist=len(watchlist),
+        no_chemistry=not ext.has_chemistry,
+        top_rows=top.to_dict(orient="records"),
+    )
     return {"limits": len(limits), "watchlist": len(watchlist), "feedback_alerts": len(feedback)}
 
 

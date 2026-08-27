@@ -200,16 +200,17 @@ def main(ext: Extracts | None = None) -> dict:
     risk = score_latest(full, bundle)
     risk.to_csv(config.DATA_PROCESSED / "risk_scores.csv", index=False)
 
-    print("Phase 3 - Supervised Health Assessment")
-    print(f"  horizon sweep         : " + ", ".join(
-        f"{r.horizon_days}d={r.positives}pos" for r in sweep.itertuples()))
-    print(f"  selected model        : {best_name}"
-          + ("  (but rule baseline wins -- ship the rule)" if ship_rule else ""))
-    print(f"  held-out PR-AUC       : {best_row['pr_auc']:.3f} "
-          f"(rule {rule_row['pr_auc']:.3f}, base {best_row['base_rate']:.3f})")
-    print(f"  precision @ capacity  : {final_row['precision_at_capacity']:.2f}  "
-          f"(recall {final_row['recall_at_capacity']:.2f})")
-    print(f"  model saved           : artifacts/phase3_model.joblib")
+    from . import report
+    report.phase3_summary(
+        horizon_sweep=sweep.to_dict(orient="records"),
+        best_name=best_name,
+        best_prauc=float(best_row['pr_auc']),
+        rule_prauc=float(rule_row['pr_auc']),
+        base_rate=float(best_row['base_rate']),
+        precision_cap=float(final_row['precision_at_capacity']),
+        recall_cap=float(final_row['recall_at_capacity']),
+        ship_rule=ship_rule,
+    )
     return {"sweep": sweep.to_dict(orient="records"), "results": results,
             "ship_rule": ship_rule, "selected": best_name}
 

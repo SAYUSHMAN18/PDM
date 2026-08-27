@@ -172,17 +172,18 @@ def main(ext: Extracts | None = None) -> dict:
              f"{km_at(km, 30):.3f} / {km_at(km, 60):.3f} / {km_at(km, 90):.3f}"]
     (config.ARTIFACTS / "phase4_metrics.txt").write_text("\n".join(lines) + "\n")
 
-    print("Phase 4 - Survival Prognostics")
-    print(f"  person-period rows    : {len(pp_train):,} ({n_events} events)  "
-          f"censor {CENSOR}d / {N_PERIODS} periods")
-    print(f"  held-out risk_30d     : PR-AUC {check['pr_auc']:.3f} "
-          f"(base {check['base_rate']:.3f}, lift {check['lift_over_base']}x)")
-    print(f"  KM baseline S(30/60/90): {km_at(km, 30):.2f} / {km_at(km, 60):.2f} / {km_at(km, 90):.2f}")
-    print(f"  scored machine-comps  : {len(latest)}  ->  artifacts/phase4_multi_horizon_risk.csv")
-    top = latest.head(5)
-    for _, r in top.iterrows():
-        print(f"   {r['machine_id']:<12} {r['component']:<10} {r['lab_severity']:<9} "
-              f"30d {r['risk_30d']:.0%}  60d {r['risk_60d']:.0%}  90d {r['risk_90d']:.0%}")
+    from . import report
+    report.phase4_summary(
+        n_rows=len(pp_train),
+        n_events=n_events,
+        prauc_30d=float(check['pr_auc']),
+        lift_30d=float(check.get('lift_over_base', check['pr_auc'] / max(check['base_rate'], 0.001))),
+        km_30=km_at(km, 30),
+        km_60=km_at(km, 60),
+        km_90=km_at(km, 90),
+        n_scored=len(latest),
+        top_rows=latest.head(5).to_dict(orient='records'),
+    )
     return {"held_out": check, "scored": len(latest), "events": n_events}
 
 

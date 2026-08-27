@@ -169,19 +169,19 @@ def main(ext: Extracts | None = None) -> dict:
         json.dump(vc, f, indent=2, default=str)
     feedback = update_feedback_table(adv)
 
-    print("Phase 5 - Advisory Generation & Cost-Weighted Deployment")
-    print(f"  risk source           : {source}")
-    print(f"  advisories            : {len(adv)}  "
-          f"(P1 {vc['p1_inspect_now']} / P2 {vc['p2_plan_inspection']} / P3 {vc['p3_monitor']})")
-    print(f"  expected prevented $  : ${vc['expected_prevented_cost_usd']:,.0f}")
-    print(f"  inspection cost $     : ${vc['inspection_cost_usd']:,.0f}")
-    print(f"  net expected value $  : ${vc['net_expected_value_usd']:,.0f}  (ROI {vc['roi_x']}x)")
-    print(f"  feedback table        : {len(feedback)} advisories tracked  ->  artifacts/advisory_feedback_table.csv")
-    print("\n  Top cost-weighted advisories:")
-    for _, r in adv.head(8).iterrows():
-        print(f"   {r['rank']:>2}. {r['machine_id']:<12} {r['component']:<10} "
-              f"{r['tier']}  risk {r['risk']:>5.0%}  E[value] ${r['expected_value_usd']:>10,.0f}  "
-              f"{r['component_family']}")
+    from . import report
+    report.phase5_summary(
+        risk_source=source,
+        n_total=len(adv),
+        n_p1=vc['p1_inspect_now'],
+        n_p2=vc['p2_plan_inspection'],
+        n_p3=vc['p3_monitor'],
+        prevented_usd=vc['expected_prevented_cost_usd'],
+        inspection_cost_usd=vc['inspection_cost_usd'],
+        net_value_usd=vc['net_expected_value_usd'],
+        roi=float(vc['roi_x']),
+        top_rows=adv.head(8).to_dict(orient='records'),
+    )
     return vc
 
 

@@ -86,13 +86,16 @@ def main(ext: Extracts | None = None) -> dict:
     with open(config.ARTIFACTS / "phase0_scope_fmeca.json", "w") as f:
         json.dump(scope_doc, f, indent=2, default=str)
 
-    print("Phase 0 - Scope & FMECA")
-    print(f"  pilot machines        : {scope_doc['pilot_fleet']['machines']}")
-    print(f"  model families        : {', '.join(scope_doc['pilot_fleet']['model_families'])}")
-    print(f"  compartment families  : {', '.join(families_in_data)}")
-    print(f"  FMECA in-scope modes  : {len(scoped)} / {len(config.FMECA_SHORTLIST)}")
-    print(f"  prediction target     : corrective WO within {config.PRIMARY_HORIZON} days")
-    print(f"  gate                  : {scope_doc['gate']}")
+    from . import report
+    report.phase0_summary(
+        machines=scope_doc['pilot_fleet']['machines'],
+        families=scope_doc['pilot_fleet']['model_families'],
+        compartments=families_in_data,
+        fmeca_in=len(scoped),
+        fmeca_total=len(config.FMECA_SHORTLIST),
+        horizon=config.PRIMARY_HORIZON,
+        gate=scope_doc['gate'],
+    )
     return scope_doc
 
 

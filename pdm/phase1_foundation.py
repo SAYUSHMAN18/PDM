@@ -135,20 +135,19 @@ def main(ext: Extracts | None = None) -> dict:
     with open(config.ARTIFACTS / "phase1_data_audit.json", "w") as f:
         json.dump(audit, f, indent=2, default=str)
 
-    print("Phase 1 - Data Foundation & Quality Audit")
-    print(f"  canonical samples     : {len(canonical):,}  ->  data/processed/canonical_samples.csv")
-    print(f"  SMU meter reversals   : {quality['smu_meter_reversals']}")
-    if labels.get("status") == "NO_WORK_ORDERS":
-        print("  label governance      : NO WORK ORDERS in this extract")
-    else:
-        print(f"  WO->compartment map   : {labels['wo_to_compartment_mapping_share']:.0%}   "
-              f"(CM share {labels['corrective_share']:.0%})")
-        print(f"  reporting lag (median): {labels['reporting_lag_days_median']} days")
-    print(f"  oil-hours populated   : {sampling['samples_with_oil_hours_share']:.0%}  "
-          f"({sampling['rating']})")
-    if labels.get("stop_and_fix"):
-        print(f"  *** STOP-AND-FIX: {labels.get('stop_and_fix_reason')} -- "
-              f"do not start Phase 3 modelling on these labels ***")
+    from . import report
+    report.phase1_summary(
+        n_samples=len(canonical),
+        reversals=quality['smu_meter_reversals'],
+        wo_map_pct=labels.get('wo_to_compartment_mapping_share'),
+        cm_share=labels.get('corrective_share'),
+        lag_median=labels.get('reporting_lag_days_median'),
+        oil_hrs_pct=sampling['samples_with_oil_hours_share'],
+        oil_rating=sampling['rating'],
+        no_wo=labels.get('status') == 'NO_WORK_ORDERS',
+        stop_fix=bool(labels.get('stop_and_fix', False)),
+        stop_reason=labels.get('stop_and_fix_reason'),
+    )
     return audit
 
 
