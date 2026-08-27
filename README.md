@@ -14,32 +14,36 @@ later the engine came in for a bearing job."* The model learns those patterns an
 then, for each new sample, answers one question: **how likely is a corrective
 repair on this component in the next 30 days?**
 
-## Run Pipelines
+## Run Pipelines & Data Audit
 
-### 1. S·O·S Oil Analysis & Work Order Pipeline (30-Day Risk Model)
+### 1. Data Quality & Rule-Based Audit (Current Sample Extracts)
+Run rule-based diagnostics, detect elevated Iron / Dirt entry, and evaluate sample suitability:
+```bash
+python audit_sample_data.py       # outputs artifacts/data_quality_audit.md
+```
+
+### 2. S·O·S Oil Analysis & Work Order Pipeline (30-Day Risk ML Model)
 ```bash
 python build_dataset.py          # join, label, engineer features from raw CSVs
 python train_model.py            # time-split training + model selection
 python score_new_samples.py      # risk cards for every machine-component
 ```
 
-### 2. Hydraulic System Sensor `.txt` Pipeline (Component Health Classifier)
-```bash
-python build_sensor_dataset.py   # extract cycle statistics from 17 sensor .txt files
-python train_sensor_model.py     # train classifiers for Cooler, Valve, Pump & Accumulator
-```
+### 3. Enterprise Data Request Specification
+Before ML training on live enterprise data, request matching S·O·S, Telematics, Work Order, and Asset Master exports following [`DATA_REQUEST_ENTERPRISE.md`](file:///c:/Users/ersay/Downloads/sos_wo_pdm_starter/DATA_REQUEST_ENTERPRISE.md).
 
 ## What each file does
 
 | File | Role |
 |---|---|
+| `audit_sample_data.py` | Rule-based diagnostic report & data quality audit on enterprise sample files |
+| `DATA_REQUEST_ENTERPRISE.md` | Formal 4-dataset request specification & message template for data providers |
 | `build_dataset.py` | S.O.S + Work Order labelling, leakage guards, feature engineering |
 | `train_model.py` | 30-day corrective maintenance risk model training & evaluation |
 | `score_new_samples.py` | Scores latest oil samples per machine-component, prints risk cards |
 | `build_sensor_dataset.py` | Extracts cycle summary features from 17 sensor `.txt` files |
 | `train_sensor_model.py` | Trains component condition models (Cooler, Valve, Pump, Accumulator) |
-| `DATA_REQUEST.md` | Data extraction request documentation |
-| `make_synthetic_data.py` | Synthetic S.O.S + WO generator (optional) |
+| `make_synthetic_data.py` | Synthetic S.O.S + WO generator (optional benchmark) |
 
 ## How the label is made
 
