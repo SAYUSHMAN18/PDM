@@ -1,0 +1,47 @@
+version: 1
+severity_codes:
+  AR: 0.40
+  A: 0.20
+  WATCH: 0.55
+  NORMAL: 0.10
+
+rules:
+  - id: elevated_iron
+    score: 0.85
+    patterns:
+      - "iron.*(highly elevated|elevated|high)"
+    evidence: "Iron wear indicator is elevated"
+    recommendation: "Have a reliability engineer review the laboratory comment, then inspect magnetic plugs, screens and filters for wear debris using the OEM procedure."
+
+  - id: dirt_entry
+    score: 0.82
+    patterns:
+      - "dirt entry"
+      - "silicon.*alumin"
+    evidence: "Silicon/aluminium pattern suggests possible dirt entry"
+    recommendation: "Verify the contamination finding and inspect seals, plugs, breathers and other ingress paths using the component maintenance procedure."
+
+  - id: coolant_or_water
+    score: 0.95
+    patterns:
+      - "coolant.*(entry|leak|contamin)"
+      - "glycol"
+      - "water.*(high|elevated|contamin)"
+    evidence: "Possible coolant or water contamination"
+    recommendation: "Confirm the result with the laboratory and inspect the cooling and lubrication systems; a qualified engineer should decide whether operating restrictions are required."
+
+  - id: fuel_dilution
+    score: 0.88
+    patterns:
+      - "fuel dilution"
+      - "fuel.*(high|elevated)"
+    evidence: "Possible fuel dilution"
+    recommendation: "Confirm the reported dilution, inspect the fuel system and combustion condition, and follow the OEM fluid-change criteria."
+
+  - id: resample_requested
+    score: 0.60
+    patterns:
+      - "sample in [0-9]+ hours"
+      - "resample"
+    evidence: "Laboratory requested shortened-interval resampling"
+    recommendation: "Schedule the confirmation sample at the laboratory-specified operating-hour interval."
